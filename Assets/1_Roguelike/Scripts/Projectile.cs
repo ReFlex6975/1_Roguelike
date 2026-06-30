@@ -35,7 +35,7 @@ public class Projectile : NetworkBehaviour
         if (!IsServer) return;
         if (!other.CompareTag("Enemy")) return;
 
-        // TODO: other.GetComponent<Enemy>().TakeDamage(_damage);
+        other.GetComponent<Enemy>()?.TakeDamage(_damage);
         NetworkObject.Despawn();
     }
 }
