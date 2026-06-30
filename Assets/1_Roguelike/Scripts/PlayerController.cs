@@ -1,35 +1,32 @@
 using Unity.Netcode;
 using UnityEngine;
-using Steamworks;
-
 
 public class PlayerController : NetworkBehaviour
 {
-    float speed = 5f;
-
+    [SerializeField] private float speed = 5f;
 
     void Update()
     {
-        if (!IsOwner)
-        {
-            return;
-        }
+        if (!IsOwner) return;
 
         var horizontal = Input.GetAxis("Horizontal");
-        var vertical = Input.GetAxis("Vertical");
-        var direction = new Vector3(horizontal, 0, vertical);
+        var vertical   = Input.GetAxis("Vertical");
 
-        if (direction.sqrMagnitude > 0)
-        {
-            MoveServerRpc(direction);
-        }
+        if (horizontal == 0 && vertical == 0) return;
 
+        var cam     = Camera.main;
+        var forward = Vector3.ProjectOnPlane(cam.transform.forward, Vector3.up).normalized;
+        var right   = Vector3.ProjectOnPlane(cam.transform.right,   Vector3.up).normalized;
+
+        var direction = (forward * vertical + right * horizontal).normalized;
+
+        MoveServerRpc(direction);
     }
 
     [ServerRpc]
-
     private void MoveServerRpc(Vector3 direction)
     {
         transform.position += direction * speed * Time.deltaTime;
-    } 
+        transform.rotation  = Quaternion.LookRotation(direction);
+    }
 }
