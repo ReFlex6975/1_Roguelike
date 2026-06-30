@@ -126,6 +126,7 @@ GameObject:
   - component: {fileID: 7258335813421268398}
   - component: {fileID: 1234567890123456789}
   - component: {fileID: 405893822614931197}
+  - component: {fileID: 2707884572603600644}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -234,3 +235,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &2707884572603600644
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8659627636256854081}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76e2a87daa1496f439e63c105e6d1e38, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerCameraSetup
+  ShowTopMostFoldoutHeaderGroup: 1
+  freeLookCameraPrefab: {fileID: 7993532170635181400, guid: 6cce7ca948c6687479aa1571b8413230, type: 3}
+  mouseSensitivity: 2
+  minY: -30
+  maxY: 60
