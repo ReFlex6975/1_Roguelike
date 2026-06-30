@@ -14,7 +14,9 @@ public class PlayerController : NetworkBehaviour
 
         if (horizontal == 0 && vertical == 0) return;
 
-        var cam     = Camera.main;
+        var cam = Camera.main;
+        if (cam == null) return;
+
         var forward = Vector3.ProjectOnPlane(cam.transform.forward, Vector3.up).normalized;
         var right   = Vector3.ProjectOnPlane(cam.transform.right,   Vector3.up).normalized;
 

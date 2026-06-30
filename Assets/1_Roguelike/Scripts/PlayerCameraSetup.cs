@@ -18,6 +18,7 @@ public class PlayerCameraSetup : NetworkBehaviour
         if (!IsOwner) return;
 
         var go = new GameObject("PlayerCamera");
+        go.tag = "MainCamera";
         _camera = go.AddComponent<Camera>();
         go.AddComponent<AudioListener>();
 
