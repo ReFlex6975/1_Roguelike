@@ -368,7 +368,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAutoAttack
   ShowTopMostFoldoutHeaderGroup: 1
   radius: 5
-  cooldown: 1
+  cooldown: 0.1
   damage: 25
   projectilePrefab: {fileID: 2598252625894222059, guid: 57541ba165e04514fb390712e1993531, type: 3}
 --- !u!136 &7074047907767259182
