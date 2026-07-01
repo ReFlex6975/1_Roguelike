@@ -20,8 +20,10 @@ public class SteamManager : MonoBehaviour
         try
         {
             SteamClient.Init(AppId, false);
+            // Relay нужно инициализировать ДО ConnectRelay() — иначе клиент
+            // падает при join, потому что FacepunchTransport делает это слишком поздно
+            SteamNetworkingUtils.InitRelayNetworkAccess();
             Debug.Log($"[SteamManager] Инициализирован: {SteamClient.Name} ({SteamClient.SteamId})");
-            Debug.Log($"[SteamManager] Overlay доступен: {SteamUtils.IsOverlayEnabled}");
         }
         catch (Exception e)
         {
