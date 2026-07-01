@@ -7,6 +7,7 @@ public class HUD : MonoBehaviour
 
     public TextMeshProUGUI LevelText;
     public TextMeshProUGUI XpText;
+    public TextMeshProUGUI PlayerListText;
 
     void Awake() => Instance = this;
 }

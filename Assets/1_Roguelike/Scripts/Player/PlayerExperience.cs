@@ -1,33 +1,39 @@
 using UnityEngine;
 using Unity.Netcode;
-using TMPro;
+using Steamworks;
 
 public class PlayerExperience : NetworkBehaviour
 {
     [SerializeField] private float xpModifier = 1f;
 
-    public NetworkVariable<int> Xp = new NetworkVariable<int>();
-    public NetworkVariable<int> Level = new NetworkVariable<int>();
+    public NetworkVariable<int> Xp            = new NetworkVariable<int>();
+    public NetworkVariable<int> Level         = new NetworkVariable<int>();
     public NetworkVariable<int> XpToNextLevel = new NetworkVariable<int>();
+    public NetworkVariable<ulong> SteamId     = new NetworkVariable<ulong>();
 
     public override void OnNetworkSpawn()
     {
         if (IsServer)
         {
-            Xp.Value = 0;
-            Level.Value = 1;
+            Xp.Value            = 0;
+            Level.Value         = 1;
             XpToNextLevel.Value = 10;
         }
 
         if (IsOwner)
         {
-            Level.OnValueChanged += (_, val) => HUD.Instance.LevelText.SetText($"Level: {val}");
-            Xp.OnValueChanged += (_, val) => HUD.Instance.XpText.SetText($"XP: {val} / {XpToNextLevel.Value}");
+            SetSteamIdServerRpc(SteamClient.SteamId.Value);
+
+            Level.OnValueChanged         += (_, val) => HUD.Instance.LevelText.SetText($"Level: {val}");
+            Xp.OnValueChanged            += (_, val) => HUD.Instance.XpText.SetText($"XP: {val} / {XpToNextLevel.Value}");
             XpToNextLevel.OnValueChanged += (_, val) => HUD.Instance.XpText.SetText($"XP: {Xp.Value} / {val}");
 
             UpdateUI();
         }
     }
+
+    [ServerRpc]
+    private void SetSteamIdServerRpc(ulong steamId) => SteamId.Value = steamId;
 
     private void UpdateUI()
     {
@@ -35,27 +41,12 @@ public class PlayerExperience : NetworkBehaviour
         HUD.Instance.XpText.SetText($"XP: {Xp.Value} / {XpToNextLevel.Value}");
     }
 
-    void OnTriggerEnter(Collider other)
-    {
-        if (!IsOwner) return;
-        if (!other.CompareTag("Xp")) return;
-
-        var pickup = other.GetComponent<XpPickup>();
-        if (pickup == null) return;
-
-        AddXpServerRpc(pickup.Amount, other.GetComponent<NetworkObject>().NetworkObjectId);
-    }
-
     [ServerRpc]
-    private void AddXpServerRpc(int amount, ulong pickupNetId)
+    public void AddXpServerRpc(int amount)
     {
         Xp.Value += Mathf.RoundToInt(amount * xpModifier);
-
         while (Xp.Value >= XpToNextLevel.Value)
             LevelUp();
-
-        if (NetworkManager.SpawnManager.SpawnedObjects.TryGetValue(pickupNetId, out var netObj))
-            netObj.Despawn();
     }
 
     private void LevelUp()
