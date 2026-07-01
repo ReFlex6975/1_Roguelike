@@ -18,9 +18,7 @@ public class PlayerPickup : NetworkBehaviour
         var pickup = other.GetComponent<XpPickup>();
         if (pickup == null) return;
 
-        var netObj = other.GetComponent<NetworkObject>();
-        if (netObj == null) return;
-
-        _experience.AddXpServerRpc(pickup.Amount, netObj.NetworkObjectId);
+        _experience.AddXpServerRpc(pickup.Amount);
+        Destroy(other.gameObject);
     }
 }

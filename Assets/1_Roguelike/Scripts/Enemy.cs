@@ -7,7 +7,8 @@ public class Enemy : NetworkBehaviour
     [SerializeField] private float maxHp = 50f;
     [SerializeField] private float damage = 10f;
     [SerializeField] private float damageCooldown = 1f;
-    [SerializeField] private GameObject XpCrystalPrefab;
+    [SerializeField] private GameObject xpCrystalPrefab;
+    [SerializeField] private int xpAmount = 5;
 
     public NetworkVariable<float> Hp = new NetworkVariable<float>();
 
@@ -51,8 +52,7 @@ public class Enemy : NetworkBehaviour
         Hp.Value -= dmg;
         if (Hp.Value <= 0)
         {
-            var go = Instantiate(XpCrystalPrefab, transform.position, Quaternion.identity);
-            go.GetComponent<NetworkObject>().Spawn();
+            SpawnCrystalClientRpc(transform.position, xpAmount);
             NetworkObject.Despawn();
         }
     }
@@ -75,4 +75,13 @@ public class Enemy : NetworkBehaviour
 
         return nearest;
     }
+
+    [ClientRpc]
+    private void SpawnCrystalClientRpc(Vector3 pos, int amount)
+    {
+        var go = Instantiate(xpCrystalPrefab, pos, Quaternion.identity);
+        go.GetComponent<XpPickup>().Amount = amount;
+    }
 }
+
+

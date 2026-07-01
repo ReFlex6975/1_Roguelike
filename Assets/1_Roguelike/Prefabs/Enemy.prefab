@@ -130,7 +130,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1913063794
+  GlobalObjectIdHash: 3128880097
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -230,7 +230,8 @@ MonoBehaviour:
   maxHp: 50
   damage: 10
   damageCooldown: 1
-  XpCrystalPrefab: {fileID: 7400223634186952630, guid: 98d27cf520ae03746b8e7e6199eb1d1f, type: 3}
+  xpCrystalPrefab: {fileID: 7400223634186952630, guid: 98d27cf520ae03746b8e7e6199eb1d1f, type: 3}
+  xpAmount: 5
   Hp:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
