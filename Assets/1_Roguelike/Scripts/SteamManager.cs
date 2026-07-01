@@ -1,10 +1,11 @@
 using System;
 using Steamworks;
+using Steamworks.Data;
+using Netcode.Transports.Facepunch;
+using Unity.Netcode;
 using UnityEngine;
 
-// Инициализирует Steam до загрузки первой сцены.
-// Steam overlay (Shift+Tab) должен зацепиться за DirectX до первого кадра —
-// если инициализировать позже (при нажатии "Start Host"), overlay не внедряется.
+// DontDestroyOnLoad — колбэки Steam всегда активны независимо от состояния сцены.
 public class SteamManager : MonoBehaviour
 {
     private const uint AppId = 480;
@@ -12,7 +13,6 @@ public class SteamManager : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void Init()
     {
-        // Exclusive fullscreen блокирует Steam overlay — принудительно borderless
         Screen.fullScreenMode = FullScreenMode.FullScreenWindow;
 
         if (SteamClient.IsValid) return;
@@ -20,8 +20,6 @@ public class SteamManager : MonoBehaviour
         try
         {
             SteamClient.Init(AppId, false);
-            // Relay нужно инициализировать ДО ConnectRelay() — иначе клиент
-            // падает при join, потому что FacepunchTransport делает это слишком поздно
             SteamNetworkingUtils.InitRelayNetworkAccess();
             Debug.Log($"[SteamManager] Инициализирован: {SteamClient.Name} ({SteamClient.SteamId})");
         }
@@ -34,6 +32,49 @@ public class SteamManager : MonoBehaviour
         var go = new GameObject("[SteamManager]");
         DontDestroyOnLoad(go);
         go.AddComponent<SteamManager>();
+    }
+
+    void Awake()
+    {
+        SteamFriends.OnGameLobbyJoinRequested += OnGameLobbyJoinRequested;
+        SteamMatchmaking.OnLobbyEntered       += OnLobbyEntered;
+    }
+
+    void OnDestroy()
+    {
+        SteamFriends.OnGameLobbyJoinRequested -= OnGameLobbyJoinRequested;
+        SteamMatchmaking.OnLobbyEntered       -= OnLobbyEntered;
+    }
+
+    // Клиент кликнул "Join Game" в оверлее
+    private async void OnGameLobbyJoinRequested(Lobby lobby, SteamId steamId)
+    {
+        Debug.Log($"[SteamManager] OnGameLobbyJoinRequested: лобби={lobby.Id}");
+        var result = await lobby.Join();
+        Debug.Log($"[SteamManager] lobby.Join() → {result}");
+
+        if (result != RoomEnter.Success)
+            Debug.LogError($"[SteamManager] Не удалось войти в лобби: {result}");
+    }
+
+    // Срабатывает после успешного lobby.Join()
+    private void OnLobbyEntered(Lobby lobby)
+    {
+        var nm = NetworkManager.Singleton;
+        Debug.Log($"[SteamManager] OnLobbyEntered: IsHost={nm.IsHost} IsClient={nm.IsClient}");
+
+        if (nm.IsHost || nm.IsClient) return;
+
+        var transport = FindFirstObjectByType<FacepunchTransport>();
+        if (transport == null)
+        {
+            Debug.LogError("[SteamManager] FacepunchTransport не найден");
+            return;
+        }
+
+        transport.targetSteamId = lobby.Owner.Id;
+        Debug.Log($"[SteamManager] Подключаемся к {lobby.Owner.Name} ({lobby.Owner.Id})");
+        nm.StartClient();
     }
 
     void OnApplicationQuit()
