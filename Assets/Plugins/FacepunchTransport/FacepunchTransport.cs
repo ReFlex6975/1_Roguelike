@@ -94,6 +94,8 @@ namespace Netcode.Transports.Facepunch
         {
             connectedClients = new Dictionary<ulong, Client>();
 
+            if (SteamClient.IsValid) return; // уже инициализирован SteamManager'ом
+
             try
             {
                 SteamClient.Init(steamAppId, false);
