@@ -11,6 +11,8 @@ public class PlayerExperience : NetworkBehaviour
     public NetworkVariable<int> XpToNextLevel = new NetworkVariable<int>();
     public NetworkVariable<ulong> SteamId     = new NetworkVariable<ulong>();
 
+    public NetworkVariable<int> Points = new NetworkVariable<int>();
+
     public override void OnNetworkSpawn()
     {
         if (IsServer)
@@ -18,6 +20,7 @@ public class PlayerExperience : NetworkBehaviour
             Xp.Value            = 0;
             Level.Value         = 1;
             XpToNextLevel.Value = 10;
+            Points.Value        = 0;
         }
 
         if (IsOwner)
@@ -27,6 +30,7 @@ public class PlayerExperience : NetworkBehaviour
             Level.OnValueChanged         += (_, val) => HUD.Instance.LevelText.SetText($"Level: {val}");
             Xp.OnValueChanged            += (_, val) => HUD.Instance.XpText.SetText($"XP: {val} / {XpToNextLevel.Value}");
             XpToNextLevel.OnValueChanged += (_, val) => HUD.Instance.XpText.SetText($"XP: {Xp.Value} / {val}");
+            Points.OnValueChanged        += (_, val) => HUD.Instance.SetSkillPoints(val);
 
             UpdateUI();
         }
@@ -39,6 +43,7 @@ public class PlayerExperience : NetworkBehaviour
     {
         HUD.Instance.LevelText.SetText($"Level: {Level.Value}");
         HUD.Instance.XpText.SetText($"XP: {Xp.Value} / {XpToNextLevel.Value}");
+        HUD.Instance.SetSkillPoints(Points.Value);
     }
 
     [ServerRpc]
@@ -56,6 +61,7 @@ public class PlayerExperience : NetworkBehaviour
         XpToNextLevel.Value += Level.Value * 2;
 
         Debug.Log($"[PlayerExperience] Игрок {OwnerClientId} достиг уровня {Level.Value}");
+        Points.Value += 1;
         // TODO: событие выбора апгрейда
     }
 }
