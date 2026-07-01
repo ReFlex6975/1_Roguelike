@@ -39,6 +39,14 @@ public class SteamManager : MonoBehaviour
         SteamFriends.OnGameLobbyJoinRequested += OnGameLobbyJoinRequested;
     }
 
+    void Update()
+    {
+        // RunCallbacks нужен каждый кадр — иначе Steam-события не доходят
+        // до подписчиков пока NetworkManager не запущен (FacepunchTransport делает
+        // это только после StartHost/StartClient, и мы пропускаем join-колбэк)
+        SteamClient.RunCallbacks();
+    }
+
     void OnDestroy()
     {
         SteamFriends.OnGameLobbyJoinRequested -= OnGameLobbyJoinRequested;
