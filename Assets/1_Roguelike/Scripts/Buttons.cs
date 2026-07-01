@@ -12,6 +12,8 @@ public class Buttons : MonoBehaviour
     void Awake()
     {
         _transport = FindFirstObjectByType<FacepunchTransport>();
+        if (_transport == null)
+            Debug.LogError("[Buttons] FacepunchTransport не найден на сцене!");
     }
 
     void OnEnable()
@@ -54,9 +56,13 @@ public class Buttons : MonoBehaviour
         }
 
         _currentLobby = lobby.Value;
-        _currentLobby.Value.SetFriendsOnly();   // видно друзьям через Shift+Tab
+        _currentLobby.Value.SetFriendsOnly();
         _currentLobby.Value.SetJoinable(true);
-        Debug.Log($"[Steam] Лобби создано: {_currentLobby.Value.Id}");
+
+        // КРИТИЧНО: без SetGameServer оверлей Shift+Tab не показывает "Join Game"
+        _currentLobby.Value.SetGameServer(SteamClient.SteamId);
+
+        Debug.Log($"[Steam] Лобби создано: {_currentLobby.Value.Id} | хост SteamId: {SteamClient.SteamId}");
     }
 
     // ── Steam: колбэки ─────────────────────────────────────────
@@ -64,24 +70,39 @@ public class Buttons : MonoBehaviour
     private void OnLobbyCreated(Result result, Lobby lobby)
     {
         if (result != Result.OK)
-            Debug.LogError($"[Steam] OnLobbyCreated error: {result}");
+            Debug.LogError($"[Steam] OnLobbyCreated ошибка: {result}");
+        else
+            Debug.Log("[Steam] OnLobbyCreated — OK");
     }
 
     private void OnLobbyEntered(Lobby lobby)
     {
-        if (NetworkManager.Singleton.IsHost) return;
+        var nm = NetworkManager.Singleton;
+        Debug.Log($"[Steam] OnLobbyEntered: IsHost={nm.IsHost} IsClient={nm.IsClient} IsListening={nm.IsListening}");
 
-        // клиент вошёл в лобби — получаем SteamId хоста и подключаемся
+        // хост и уже подключающийся клиент — пропускаем
+        if (nm.IsHost || nm.IsClient) return;
+
+        if (_transport == null)
+        {
+            Debug.LogError("[Steam] _transport == null, подключение невозможно");
+            return;
+        }
+
         _transport.targetSteamId = lobby.Owner.Id;
-        NetworkManager.Singleton.StartClient();
-        Debug.Log($"[Steam] Подключаемся к хосту: {lobby.Owner.Name} ({lobby.Owner.Id})");
+        Debug.Log($"[Steam] Подключаемся к {lobby.Owner.Name} (SteamId={lobby.Owner.Id})");
+        nm.StartClient();
     }
 
-    // срабатывает, когда игрок кликает "Join Game" в Steam-оверлее (Shift+Tab)
+    // срабатывает, когда клиент кликает "Join Game" в Steam-оверлее
     private async void OnGameLobbyJoinRequested(Lobby lobby, SteamId steamId)
     {
+        Debug.Log($"[Steam] OnGameLobbyJoinRequested: лобби={lobby.Id} от={steamId}");
         var result = await lobby.Join();
+        Debug.Log($"[Steam] lobby.Join() → {result}");
+
         if (result != RoomEnter.Success)
             Debug.LogError($"[Steam] Не удалось войти в лобби: {result}");
+        // при успехе сработает OnLobbyEntered, там стартуем клиент
     }
 }
