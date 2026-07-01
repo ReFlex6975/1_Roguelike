@@ -12,12 +12,16 @@ public class SteamManager : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void Init()
     {
+        // Exclusive fullscreen блокирует Steam overlay — принудительно borderless
+        Screen.fullScreenMode = FullScreenMode.FullScreenWindow;
+
         if (SteamClient.IsValid) return;
 
         try
         {
             SteamClient.Init(AppId, false);
             Debug.Log($"[SteamManager] Инициализирован: {SteamClient.Name} ({SteamClient.SteamId})");
+            Debug.Log($"[SteamManager] Overlay доступен: {SteamUtils.IsOverlayEnabled}");
         }
         catch (Exception e)
         {
