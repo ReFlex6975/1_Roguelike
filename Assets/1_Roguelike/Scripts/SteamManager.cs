@@ -37,38 +37,39 @@ public class SteamManager : MonoBehaviour
     void Awake()
     {
         SteamFriends.OnGameLobbyJoinRequested += OnGameLobbyJoinRequested;
-        SteamMatchmaking.OnLobbyEntered       += OnLobbyEntered;
     }
 
     void OnDestroy()
     {
         SteamFriends.OnGameLobbyJoinRequested -= OnGameLobbyJoinRequested;
-        SteamMatchmaking.OnLobbyEntered       -= OnLobbyEntered;
     }
 
-    // Клиент кликнул "Join Game" в оверлее
+    // Клиент кликнул "Join Game" в оверлее — всё делаем здесь, без OnLobbyEntered
     private async void OnGameLobbyJoinRequested(Lobby lobby, SteamId steamId)
     {
         Debug.Log($"[SteamManager] OnGameLobbyJoinRequested: лобби={lobby.Id}");
+
+        var nm = NetworkManager.Singleton;
+        if (nm.IsHost || nm.IsClient)
+        {
+            Debug.Log("[SteamManager] Уже подключены, игнорируем");
+            return;
+        }
+
         var result = await lobby.Join();
         Debug.Log($"[SteamManager] lobby.Join() → {result}");
 
         if (result != RoomEnter.Success)
+        {
             Debug.LogError($"[SteamManager] Не удалось войти в лобби: {result}");
-    }
+            return;
+        }
 
-    // Срабатывает после успешного lobby.Join()
-    private void OnLobbyEntered(Lobby lobby)
-    {
-        var nm = NetworkManager.Singleton;
-        Debug.Log($"[SteamManager] OnLobbyEntered: IsHost={nm.IsHost} IsClient={nm.IsClient}");
-
-        if (nm.IsHost || nm.IsClient) return;
-
-        var transport = FindFirstObjectByType<FacepunchTransport>();
+        // После Join() lobby.Owner гарантированно содержит данные хоста
+        var transport = nm.GetComponent<FacepunchTransport>();
         if (transport == null)
         {
-            Debug.LogError("[SteamManager] FacepunchTransport не найден");
+            Debug.LogError("[SteamManager] FacepunchTransport не найден на NetworkManager");
             return;
         }
 
