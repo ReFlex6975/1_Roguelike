@@ -7,6 +7,7 @@ public class Enemy : NetworkBehaviour
     [SerializeField] private float maxHp = 50f;
     [SerializeField] private float damage = 10f;
     [SerializeField] private float damageCooldown = 1f;
+    [SerializeField] private GameObject XpCrystalPrefab;
 
     public NetworkVariable<float> Hp = new NetworkVariable<float>();
 
@@ -49,7 +50,11 @@ public class Enemy : NetworkBehaviour
 
         Hp.Value -= dmg;
         if (Hp.Value <= 0)
+        {
+            var go = Instantiate(XpCrystalPrefab, transform.position, Quaternion.identity);
+            go.GetComponent<NetworkObject>().Spawn();
             NetworkObject.Despawn();
+        }
     }
 
     private Transform FindNearestPlayer()
